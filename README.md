@@ -70,15 +70,17 @@
 
 如果您的服务器无法直接访问 Epic Games API (例如，在中国大陆)，则需要配置代理。
 
-|          配置项           | 必填 |     默认值     | 说明                                     |
-|:----------------------:|:--:|:-----------:|:---------------------------------------|
-|   `EPIC__PROXY_TYPE`   | 否  |     (无)     | 代理类型，可选 "http" 或 "socks5"。留空或不填则不使用代理。 |
-|   `EPIC__PROXY_HOST`   | 否  | `127.0.0.1` | 代理服务器的地址。                              |
-|   `EPIC__PROXY_PORT`   | 否  |   `7890`    | 代理服务器的端口。                              |
-| `EPIC__PROXY_USERNAME` | 否  |     (无)     | 代理的用户名 (如果需要认证)。                       |
-| `EPIC__PROXY_PASSWORD` | 否  |     (无)     | 代理的密码 (如果需要认证)。                        |
+|          配置项           | 必填 |     默认值     | 说明                                                                                         |
+|:----------------------:|:--:|:-----------:|:-------------------------------------------------------------------------------------------|
+|   `EPIC__PROXY_TYPE`   | 否  |     (无)     | 代理类型，可选 "http" 或 "socks5"。留空或不填则不使用代理。                                                     |
+|   `EPIC__PROXY_HOST`   | 否  | `127.0.0.1` | 代理服务器的地址。                                                                                  |
+|   `EPIC__PROXY_PORT`   | 否  |   `7890`    | 代理服务器的端口。                                                                                  |
+| `EPIC__PROXY_USERNAME` | 否  |     (无)     | 代理的用户名 (如果需要认证)。                                                                           |
+| `EPIC__PROXY_PASSWORD` | 否  |     (无)     | 代理的密码 (如果需要认证)。                                                                            |
+| `EPIC__SUPERUSER_ONLY` | 否  |    `False`    | 是否仅允许超级用户 (SUPERUSERS) 执行订阅/取消订阅操作。设置为 `True`后，群管理和普通用户将无法使用订阅相关指令。                        |
 
-**示例:**
+
+**代理配置示例:**
 
 ```env
 # 使用本地 7890 端口的 http 代理
@@ -86,20 +88,6 @@ EPIC__PROXY_TYPE="http"
 EPIC__PROXY_HOST="127.0.0.1"
 EPIC__PROXY_PORT=7890
 ```
-
-```env
-# 使用本地 7890 端口的 socks5 代理
-EPIC__PROXY_TYPE="socks5"
-EPIC__PROXY_HOST="127.0.0.1"
-EPIC__PROXY_PORT=7890
-```
-
-### 权限配置 (可选)
-
-| 配置项 | 必填 | 默认值 | 说明 |
-|:---:|:-—:|:---:|:---|
-| `EPIC__SUPERUSER_ONLY` | 否 | `False` | 是否仅允许超级用户 (SUPERUSERS) 执行订阅/取消订阅操作。设置为 `True`
-后，群管理和普通用户将无法使用订阅相关指令。 |
 
 ## 🎉 使用
 
@@ -113,21 +101,18 @@ EPIC__PROXY_PORT=7890
 |  `epic订阅状态`   |   所有用户    | 查看当前群聊或私聊的订阅状态和推送时间。                                    |
 |   `epic刷新`    |   超级用户    | 强制刷新 Epic 免费游戏信息缓存。                                     |
 
-\* 注：
-
-- 在群聊中，指令权限为**群主/管理员/超级用户**。
-- 在私聊中，指令权限为**好友** (即所有私聊用户)。
-- 如果配置了 `EPIC__SUPERUSER_ONLY=True`，则订阅和取消订阅指令将仅限**超级用户**使用。
 
 ### 🎨 效果图
 
-*(这里可以替换成你的插件效果截图)*
-
 **查询效果:**
-![image](https://user-images.githubusercontent.com/83794331/224523097-47b29a28-1b2c-493a-867c-3f48a31ea540.png)
+
+![img_3.png](https://github.com/FlanChanXwO/nonebot-plugin-epicfree/blob/main/assets/img_3.png)
 
 **订阅与推送效果:**
-![image](https://user-images.githubusercontent.com/83794331/224523089-f509e519-c07a-42c2-be00-e83c07f4ac9b.png)
+ 
+![img_1.png](https://github.com/FlanChanXwO/nonebot-plugin-epicfree/blob/main/assets/img_1.png)
+
+![img_2.png](https://github.com/FlanChanXwO/nonebot-plugin-epicfree/blob/main/assets/img_2.png)
 
 -----------------
 ## ️🙏 致谢

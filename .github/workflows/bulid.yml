@@ -1,7 +1,12 @@
-name: Build distributions
+name: Build and Publish
 
 on:
-    workflow_dispatch:
+  push:
+    # 只在推送到 main 分支时触发
+    branches:
+      - main
+  # 同时保留手动触发的能力
+  workflow_dispatch:
 
 jobs:
   build:

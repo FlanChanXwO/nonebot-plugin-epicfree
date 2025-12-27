@@ -1,95 +1,136 @@
-<h1 align="center">NoneBot Plugin EpicFree</h1></br>
+<div align="center">
+    <a href="https://v2.nonebot.dev/store">
+    <img src="https://raw.githubusercontent.com/fllesser/nonebot-plugin-template/refs/heads/resource/.docs/NoneBotPlugin.svg" width="310" alt="logo"></a>
 
+## ✨ Epic喜加一 ✨
 
-<p align="center">🤖 用于获取 Epic 限免游戏资讯的 NoneBot2 插件</p></br>
+[![LICENSE](https://img.shields.io/github/license/FlanChanXwO/nonebot-plugin-epicfree.svg)](./LICENSE)
+[![pypi](https://img.shields.io/pypi/v/nonebot-plugin-epicfree.svg)](https://pypi.python.org/pypi/nonebot-plugin-epicfree)
+[![python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org)
+[![NoneBot](https://img.shields.io/badge/NoneBot-2.2.0+-green.svg)](https://github.com/nonebot/nonebot2)
 
+</div>
 
-<p align="center">
-  <a href="https://github.com/monsterxcn/nonebot_plugin_epicfree/actions">
-    <img src="https://img.shields.io/github/actions/workflow/status/monsterxcn/nonebot_plugin_epicfree/publish.yml?branch=main&style=flat-square" alt="actions">
-  </a>
-  <a href="https://raw.githubusercontent.com/monsterxcn/nonebot_plugin_epicfree/master/LICENSE">
-    <img src="https://img.shields.io/github/license/monsterxcn/nonebot_plugin_epicfree?style=flat-square" alt="license">
-  </a>
-  <a href="https://pypi.python.org/pypi/nonebot_plugin_epicfree">
-    <img src="https://img.shields.io/pypi/v/nonebot_plugin_epicfree?style=flat-square" alt="pypi">
-  </a>
-  <img src="https://img.shields.io/badge/python-3.8+-blue?style=flat-square" alt="python"><br />
-</p></br>
+## 📖 介绍
 
+一个用于订阅和推送 Epic Games Store 每周免费游戏的 NoneBot2 插件。
 
-**安装方法**
+功能特色：
 
+- **定时推送**：每天定时检查并推送最新的喜加一游戏信息。
+- **指令查询**：随时使用指令查询本周和下周的免费游戏。
+- **灵活订阅**：支持群聊和私聊分别订阅，推送时间可自定义。
+- **代理支持**：内置完善的代理配置，方便在网络受限的环境下使用。
+- **权限管理**：订阅、取消订阅等指令可配置为仅限管理员/群主使用。
 
-使用以下命令之一快速安装（若配置了 PyPI 镜像，你可能无法及时检索到插件最新版本）：
+## 💿 安装
 
+<details open>
+<summary>使用 nb-cli 安装 (推荐)</summary>
+在 nonebot2 项目的根目录下打开命令行, 输入以下指令即可安装
 
-``` zsh
-nb plugin install nonebot_plugin_epicfree
-
-pip install --upgrade nonebot_plugin_epicfree
-```
-
-
-重启 Bot 即可体验此插件。
-
-
-<details><summary><i>关于 NoneBot2 及相关依赖版本</i></summary></br>
-
-
-在已淘汰的 NoneBot2 适配器 [nonebot-adapter-cqhttp](https://pypi.org/project/nonebot-adapter-cqhttp/) 下，切记不要使用 `pip` 或 `nb_cli` 安装此插件。通过拷贝文件夹 `nonebot_plugin_epicfree` 至 NoneBot2 插件目录、手动安装 `nonebot-plugin-apscheduler` 和 `httpx` 依赖的方式仍可正常启用此插件。在未来某个版本会完全移除该适配器支持，请尽快升级至 [nonebot-adapter-onebot](https://pypi.org/project/nonebot-adapter-onebot/)。
-
+    nb plugin install nonebot-plugin-epicfree
 
 </details>
 
+<details>
+<summary>使用包管理器安装</summary>
+在 nonebot2 项目的插件目录下, 打开命令行, 根据你使用的包管理器, 输入相应的安装命令
 
-<details><summary><i>关于 go-cqhttp 版本</i></summary></br>
+<details>
+<summary>pdm</summary>
 
+    pdm add nonebot-plugin-epicfree
 
-插件发送消息依赖 [@Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp) 的合并转发接口，如需启用私聊响应请务必安装 [v1.0.0-rc2](https://github.com/Mrs4s/go-cqhttp/releases/tag/v1.0.0-rc2) 以上版本的 go-cqhttp。
+</details>
+<details>
+<summary>poetry</summary>
 
+    poetry add nonebot-plugin-epicfree
+
+</details>
+<details>
+<summary>uv</summary>
+
+    uv pip install nonebot-plugin-epicfree
 
 </details>
 
+然后打开 nonebot2 项目根目录下的 `pyproject.toml` 文件, 在 `[tool.nonebot]` 部分追加写入
 
-**使用方法**
+    plugins = ["nonebot_plugin_epicfree"]
 
+</details>
 
-```python
-# nonebot_plugin_epicfree/__init__.py#L27
-epic_matcher = on_regex(r"^(epic)?喜(加|\+|＋)(一|1)$", priority=2, flags=IGNORECASE)
+## ⚙️ 配置
 
-# nonebot_plugin_epicfree/__init__.py#L39
-sub_matcher = on_regex(r"^喜(加|\+|＋)(一|1)(私聊)?订阅(删除|取消)?$", priority=1)
+在 nonebot2 项目的 `.env` 或 `.env.prod` 文件中添加下表中的配置。
+
+### 代理配置 (可选)
+
+如果您的服务器无法直接访问 Epic Games API (例如，在中国大陆)，则需要配置代理。
+
+|          配置项           | 必填 |     默认值     | 说明                                     |
+|:----------------------:|:--:|:-----------:|:---------------------------------------|
+|   `EPIC__PROXY_TYPE`   | 否  |     (无)     | 代理类型，可选 "http" 或 "socks5"。留空或不填则不使用代理。 |
+|   `EPIC__PROXY_HOST`   | 否  | `127.0.0.1` | 代理服务器的地址。                              |
+|   `EPIC__PROXY_PORT`   | 否  |   `7890`    | 代理服务器的端口。                              |
+| `EPIC__PROXY_USERNAME` | 否  |     (无)     | 代理的用户名 (如果需要认证)。                       |
+| `EPIC__PROXY_PASSWORD` | 否  |     (无)     | 代理的密码 (如果需要认证)。                        |
+
+**示例:**
+
+```env
+# 使用本地 7890 端口的 http 代理
+EPIC__PROXY_TYPE="http"
+EPIC__PROXY_HOST="127.0.0.1"
+EPIC__PROXY_PORT=7890
 ```
 
-
- - 发送「喜加一」查找限免游戏
- - 发送「喜加一订阅」订阅游戏资讯
- - 发送「喜加一订阅删除」取消订阅游戏资讯
-
-
-*\* 插件响应基于正则匹配，所以，甚至「EpIc喜+1」这样的指令都可用！*
-
-
-**环境变量**
-
-
-```
-RESOURCES_DIR="/data/bot/resources"
-EPIC_SCHEDULER="8 8 8"
+```env
+# 使用本地 7890 端口的 socks5 代理
+EPIC__PROXY_TYPE="socks5"
+EPIC__PROXY_HOST="127.0.0.1"
+EPIC__PROXY_PORT=7890
 ```
 
+### 权限配置 (可选)
 
-限免游戏资讯订阅功能默认在机器人根目录下 `/data/epicfree` 文件夹内生成配置文件。定义 `RESOURCES_DIR` 环境变量即可指定用于存放订阅配置的文件夹，填写包含 `epicfree` 文件夹的 **父级文件夹** 路径即可。如果是 Windows 系统应写成类似 `D:/path/to/resources_dir` 的格式。
+| 配置项 | 必填 | 默认值 | 说明 |
+|:---:|:-—:|:---:|:---|
+| `EPIC__SUPERUSER_ONLY` | 否 | `False` | 是否仅允许超级用户 (SUPERUSERS) 执行订阅/取消订阅操作。设置为 `True`
+后，群管理和普通用户将无法使用订阅相关指令。 |
 
-限免游戏资讯订阅默认 08:08:08 发送（如果当天的游戏已经推送过则不产生推送），定义 `EPIC_SCHEDULER` 环境变量即可指定推送时间，该配置的三个数字依次代表 `hour` `minute` `second`。
+## 🎉 使用
 
+### 指令表
 
+|    指令 (别名)    |    权限     | 说明                                                      |
+|:-------------:|:---------:|:--------------------------------------------------------|
+| `epic` (喜加一)  |   所有用户    | 获取本周和下周的 Epic 免费游戏信息。                                   |
+| `epic订阅 <时间>` | 群管/群主/超管* | 在当前群聊或私聊中订阅每日定时推送。时间格式为 `时:分` (24小时制)，例如 `epic订阅 8:30`。 |
+|  `epic取消订阅`   | 群管/群主/超管* | 在当前群聊或私聊中取消订阅。                                          |
+|  `epic订阅状态`   |   所有用户    | 查看当前群聊或私聊的订阅状态和推送时间。                                    |
+|   `epic刷新`    |   超级用户    | 强制刷新 Epic 免费游戏信息缓存。                                     |
+
+\* 注：
+
+- 在群聊中，指令权限为**群主/管理员/超级用户**。
+- 在私聊中，指令权限为**好友** (即所有私聊用户)。
+- 如果配置了 `EPIC__SUPERUSER_ONLY=True`，则订阅和取消订阅指令将仅限**超级用户**使用。
+
+### 🎨 效果图
+
+*(这里可以替换成你的插件效果截图)*
+
+**查询效果:**
+![image](https://user-images.githubusercontent.com/83794331/224523097-47b29a28-1b2c-493a-867c-3f48a31ea540.png)
+
+**订阅与推送效果:**
+![image](https://user-images.githubusercontent.com/83794331/224523089-f509e519-c07a-42c2-be00-e83c07f4ac9b.png)
+
+-----------------
+## ️🙏 致谢
 **特别鸣谢**
 
-
 [@nonebot/nonebot2](https://github.com/nonebot/nonebot2/) | [@Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp) | [@DIYgod/RSSHub](https://github.com/DIYgod/RSSHub) | [@SD4RK/epicstore_api](https://github.com/SD4RK/epicstore_api)
-
-
-> 作者是 NoneBot2 新手，代码写的较为粗糙，欢迎提出修改意见或加入此插件开发！溜了溜了...

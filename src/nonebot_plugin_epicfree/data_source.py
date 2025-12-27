@@ -1,40 +1,30 @@
 import json
 from datetime import datetime
-from pathlib import Path
 from traceback import format_exc
 from typing import Dict, List, Literal, Union
-
 from httpx import AsyncClient
-from pytz import timezone
-
-from nonebot import get_driver
 from nonebot.log import logger
+from nonebot_plugin_localstore import get_plugin_data_file, get_plugin_cache_file
+from pytz import timezone
+from nonebot.adapters.onebot.v11 import Message, MessageSegment  # type: ignore
 
-try:
-    from nonebot.adapters.onebot.v11 import Message, MessageSegment  # type: ignore
-except ImportError:
-    from nonebot.adapters.cqhttp import Message, MessageSegment  # type: ignore
 
-RES_PARENT = getattr(get_driver().config, "resources_dir", None)
-if RES_PARENT and Path(RES_PARENT).exists():
-    res_path = Path(RES_PARENT) / "epicfree"
-else:
-    res_path = Path("data/epicfree")
-res_path.mkdir(parents=True, exist_ok=True)
-CACHE = res_path / "status.json"
-PUSHED = res_path / "last_pushed.json"
-
+# 订阅状态配置文件
+subscribe_file = get_plugin_data_file("status.json")
+# 上次推送内容
+pushed_cache_file = get_plugin_cache_file("last_pushed.json")
 
 async def subscribe_helper(
-    method: Literal["读取", "启用", "删除"] = "读取", sub_type: str = "", subject: str = ""
+        method: Literal["读取", "启用", "删除"] = "读取", sub_type: str = "", subject: str = ""
 ) -> Union[Dict, str]:
-    """写入与读取订阅配置"""
+    """写入与读取订阅配置 (已使用 nonebot-plugin-localstorage)"""
 
-    if CACHE.exists():
-        status_data = json.loads(CACHE.read_text(encoding="UTF-8"))
+    if subscribe_file.exists():
+        status_data = json.loads(subscribe_file.read_text(encoding="UTF-8"))
     else:
         status_data = {"群聊": [], "私聊": []}
-        CACHE.write_text(
+        # 初始写入
+        subscribe_file.write_text(
             json.dumps(status_data, ensure_ascii=False, indent=2), encoding="UTF-8"
         )
     # 读取时，返回订阅状态字典
@@ -50,14 +40,36 @@ async def subscribe_helper(
         if subject not in status_data[sub_type]:
             return f"{sub_type}{subject} 未曾订阅过 Epic 限免游戏资讯！"
         status_data[sub_type].remove(subject)
+
+    # 将修改后的数据写回文件
     try:
-        CACHE.write_text(
+        subscribe_file.write_text(
             json.dumps(status_data, ensure_ascii=False, indent=2), encoding="UTF-8"
         )
         return f"{sub_type}{subject} Epic 限免游戏资讯订阅已{method}！"
     except Exception as e:
         logger.error(f"写入 Epic 订阅 JSON 错误 {e.__class__.__name__}\n{format_exc()}")
         return f"{sub_type}{subject} Epic 限免游戏资讯订阅{method}失败惹.."
+
+
+def check_push(msg: List[MessageSegment]) -> bool:
+    """检查是否需要重新推送 (已使用 nonebot-plugin-localstorage)"""
+
+    last_text: List[str] = (
+        json.loads(pushed_cache_file.read_text(encoding="UTF-8")) if pushed_cache_file.exists() else []
+    )
+    # 提取本次消息中的游戏链接，作为唯一标识
+    _msg_text = [x.data["content"][0].data.get("text") for x in msg if
+                 isinstance(x.data.get("content"), list) and x.data["content"][0].type == "text"]
+    this_text = [s for s in _msg_text if s and s.startswith("https://store.epicgames.com")]
+
+    need_push = this_text != last_text
+    if need_push:
+        logger.debug(f"检测到新的 Epic 免费游戏，准备推送。上次推送: {last_text}, 本次: {this_text}")
+        pushed_cache_file.write_text(
+            json.dumps(this_text, ensure_ascii=False, indent=2), encoding="UTF-8"
+        )
+    return need_push
 
 
 async def query_epic_api() -> List:
@@ -67,7 +79,7 @@ async def query_epic_api() -> List:
     参考 RSSHub ``/epicgames`` 路由 https://github.com/DIYgod/RSSHub/blob/master/lib/v2/epicgames/index.js
     """
 
-    async with AsyncClient(proxies={"all://": None}) as client:
+    async with AsyncClient() as client:
         try:
             res = await client.get(
                 "https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions",
@@ -170,21 +182,21 @@ async def get_epic_free() -> List[MessageSegment]:
                     game_url = game["url"]
                 else:
                     slugs = (
-                        [
-                            x["pageSlug"]
-                            for x in game.get("offerMappings", [])
-                            if x.get("pageType") == "productHome"
-                        ]
-                        + [
-                            x["pageSlug"]
-                            for x in game.get("catalogNs", {}).get("mappings", [])
-                            if x.get("pageType") == "productHome"
-                        ]
-                        + [
-                            x["value"]
-                            for x in game.get("customAttributes", [])
-                            if "productSlug" in x.get("key")
-                        ]
+                            [
+                                x["pageSlug"]
+                                for x in game.get("offerMappings", [])
+                                if x.get("pageType") == "productHome"
+                            ]
+                            + [
+                                x["pageSlug"]
+                                for x in game.get("catalogNs", {}).get("mappings", [])
+                                if x.get("pageType") == "productHome"
+                            ]
+                            + [
+                                x["value"]
+                                for x in game.get("customAttributes", [])
+                                if "productSlug" in x.get("key")
+                            ]
                     )
                     game_url = "https://store.epicgames.com/zh-CN{}".format(
                         f"/p/{slugs[0]}" if len(slugs) else ""
@@ -227,20 +239,3 @@ async def get_epic_free() -> List[MessageSegment]:
             ),
         )
         return msg_list
-
-
-def check_push(msg: List[MessageSegment]) -> bool:
-    """检查是否需要重新推送"""
-
-    last_text: List[str] = (
-        json.loads(PUSHED.read_text(encoding="UTF-8")) if PUSHED.exists() else []
-    )
-    _msg_text = [x.data["content"][0].data.get("text") for x in msg]
-    this_text = [s for s in _msg_text if s]
-
-    need_push = this_text != last_text
-    if need_push:
-        PUSHED.write_text(
-            json.dumps(this_text, ensure_ascii=False, indent=2), encoding="UTF-8"
-        )
-    return need_push

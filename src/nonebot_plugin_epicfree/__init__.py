@@ -7,16 +7,16 @@ from nonebot.log import logger
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg, Depends
 from nonebot.plugin import PluginMetadata, get_plugin_config
-from nonebot_plugin_localstore import get_plugin_data_file
 from nonebot.adapters.onebot.v11 import (
     GroupMessageEvent,
     PrivateMessageEvent,
     Message,
 )
 
-# 导入APScheduler插件
+require("nonebot_plugin_localstore")
 require("nonebot_plugin_apscheduler")
 from nonebot_plugin_apscheduler import scheduler
+from nonebot_plugin_localstore import get_plugin_data_file
 
 # 导入数据源和定时任务管理函数
 from .data_source import (

@@ -3,7 +3,9 @@ from datetime import datetime
 from traceback import format_exc
 from typing import Dict, List, Literal, Union
 from httpx import AsyncClient
+from nonebot import require
 from nonebot.log import logger
+require("nonebot_plugin_localstore")
 from nonebot_plugin_localstore import get_plugin_data_file, get_plugin_cache_file
 from pytz import timezone
 from nonebot.adapters.onebot.v11 import Message, MessageSegment  # type: ignore

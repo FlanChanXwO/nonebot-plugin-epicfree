@@ -1,5 +1,8 @@
 import json
 from typing import Dict, Literal, Optional, Union
+from nonebot import require
+
+require("nonebot_plugin_localstore")
 from nonebot_plugin_localstore import get_plugin_data_file
 
 try:

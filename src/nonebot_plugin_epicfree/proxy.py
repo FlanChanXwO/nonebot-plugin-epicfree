@@ -4,8 +4,6 @@ from .config import ScopedConfig
 
 def init_proxy(plugin_config : ScopedConfig):
     """初始化代理设置，根据配置文件设置全局代理环境变量。"""
-    print("test = ")
-    print(plugin_config)
     if plugin_config.proxy_type:
         _proxy_url_base = ""
         if plugin_config.proxy_type.lower() == "socks5":
@@ -15,7 +13,7 @@ def init_proxy(plugin_config : ScopedConfig):
 
         if plugin_config.proxy_username and plugin_config.proxy_password:
             # 如果有用户名和密码，格式化 URL
-            _auth_part = f"{plugin_config.proxy_username}:{plugin_config.proxy_password}@"
+            _auth_part = f"{plugin_config.proxy_username}:{plugin_config.proxy_password}@   "
             # 将 "socks5://" 或 "http://" 替换为包含认证信息的新格式
             _proxy_url_base = _proxy_url_base.replace("://", f"://_auth_part")
 

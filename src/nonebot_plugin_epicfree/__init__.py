@@ -1,5 +1,5 @@
 from traceback import format_exc
-from typing import Union, Dict
+from typing import Union, Dict, Optional
 
 from nonebot import get_bot, get_driver, on_command, on_regex, require
 from nonebot.adapters import Bot, Event
@@ -24,7 +24,7 @@ from .data_source import (
     subscribe_helper,
 )
 from .config import Config
-from .proxy import init_proxy
+from .proxy import get_proxy_url
 from .schedule import scheduler_manage
 
 # -------------------- 插件元数据 --------------------
@@ -56,13 +56,6 @@ epic_matcher = on_regex(r"^(epic)?喜(加|\+|＋)(一|1)$", priority=10, block=T
 sub_cmd = on_command("epic订阅", priority=10, block=True)
 unsub_cmd = on_command("epic取消订阅", aliases={"取消epic订阅"}, priority=10, block=True)
 status_cmd = on_command("epic订阅状态", aliases={"epic推送状态"}, priority=10, block=True)
-
-
-# -------------------- 初始化 --------------------
-@get_driver().on_startup
-async def on_startup():
-    init_proxy(plugin_config)
-
 
 def get_job_id(event: Union[GroupMessageEvent, PrivateMessageEvent]) -> str:
     """根据事件类型生成唯一的 job_id"""

@@ -1,10 +1,14 @@
 import json
 from datetime import datetime
 from traceback import format_exc
-from typing import Dict, List, Literal, Union
+from typing import Dict, List, Literal, Union, Optional
 from httpx import AsyncClient
-from nonebot import require
+from nonebot import require, get_plugin_config
 from nonebot.log import logger
+from nonebot_plugin_epicfree import get_proxy_url
+
+from .config import Config
+
 require("nonebot_plugin_localstore")
 from nonebot_plugin_localstore import get_plugin_data_file, get_plugin_cache_file
 from pytz import timezone
@@ -15,6 +19,12 @@ from nonebot.adapters.onebot.v11 import Message, MessageSegment  # type: ignore
 subscribe_file = get_plugin_data_file("status.json")
 # 上次推送内容
 pushed_cache_file = get_plugin_cache_file("last_pushed.json")
+# 配置
+plugin_config = get_plugin_config(Config).epic
+
+# 获取代理配置
+def get_proxy_config_url() -> Optional[str]:
+    return get_proxy_url(plugin_config)
 
 async def subscribe_helper(
         method: Literal["读取", "启用", "删除"] = "读取", sub_type: str = "", subject: str = ""
@@ -81,7 +91,7 @@ async def query_epic_api() -> List:
     参考 RSSHub ``/epicgames`` 路由 https://github.com/DIYgod/RSSHub/blob/master/lib/v2/epicgames/index.js
     """
 
-    async with AsyncClient() as client:
+    async with AsyncClient(proxy=get_proxy_config_url()) as client:
         try:
             res = await client.get(
                 "https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions",
@@ -109,7 +119,6 @@ async def get_epic_free() -> List[MessageSegment]:
 
     参考 pip 包 epicstore_api 示例 https://github.com/SD4RK/epicstore_api/blob/master/examples/free_games_example.py
     """
-
     games = await query_epic_api()
     if not games:
         return [

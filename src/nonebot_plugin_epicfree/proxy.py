@@ -1,36 +1,41 @@
 import os
+from typing import Optional, Dict
+
 from nonebot.log import logger
 from .config import ScopedConfig
 
-def init_proxy(plugin_config : ScopedConfig):
-    """初始化代理设置，根据配置文件设置全局代理环境变量。"""
-    if plugin_config.proxy_type:
-        _proxy_url_base = ""
-        if plugin_config.proxy_type.lower() == "socks5":
-            _proxy_url_base = f"socks5://{plugin_config.proxy_host}:{plugin_config.proxy_port}"
-        elif plugin_config.proxy_type.lower() == "http":
-            _proxy_url_base = f"http://{plugin_config.proxy_host}:{plugin_config.proxy_port}"
 
-        if plugin_config.proxy_username and plugin_config.proxy_password:
-            # 如果有用户名和密码，格式化 URL
-            _auth_part = f"{plugin_config.proxy_username}:{plugin_config.proxy_password}@   "
-            # 将 "socks5://" 或 "http://" 替换为包含认证信息的新格式
-            _proxy_url_base = _proxy_url_base.replace("://", f"://_auth_part")
-
-        if _proxy_url_base:
-            # 为 httpx 设置全局代理环境变量
-            # 注意：httpx 同时识别小写和大写变量，但小写优先级更高。为保险起见，我们都设置。
-            proxy_env_vars = {
-                "HTTP_PROXY": _proxy_url_base,
-                "HTTPS_PROXY": _proxy_url_base,
-                "ALL_PROXY": _proxy_url_base,
-                "http_proxy": _proxy_url_base,
-                "httpss_proxy": _proxy_url_base,
-                "all_proxy": _proxy_url_base,
-            }
-            logger.success(f"[Proxy Config] 已启用全局代理: {_proxy_url_base}")
-            os.environ.update(proxy_env_vars)
-        else:
-            logger.warning(f"[Proxy Config] 无效的 proxy_type: {plugin_config.proxy_type}")
-    else:
+def get_proxy_url(plugin_config: ScopedConfig) -> Optional[str]:
+    """
+    根据插件配置生成 httpx 所需的代理 URL 字符串。
+    如果不配置代理，则返回 None。
+    """
+    # 检查是否配置了代理类型和主机
+    if not plugin_config.proxy_type or not plugin_config.proxy_host:
         logger.info("[Proxy Config] 未配置代理, 将直接连接。")
+        return None
+
+    proxy_url = ""
+    proxy_type_lower = plugin_config.proxy_type.lower()
+
+    # 仅支持 http 和 socks5
+    if proxy_type_lower in ["socks5", "http"]:
+        scheme = proxy_type_lower
+        host_port = f"{plugin_config.proxy_host}:{plugin_config.proxy_port}"
+
+        # 检查是否有认证信息
+        if plugin_config.proxy_username and plugin_config.proxy_password:
+            auth_part = f"{plugin_config.proxy_username}:{plugin_config.proxy_password}@"
+            proxy_url = f"{scheme}://{auth_part}{host_port}"
+        else:
+            proxy_url = f"{scheme}://{host_port}"
+
+    # 如果 proxy_url 仍然是空的，说明 proxy_type 无效
+    if not proxy_url:
+        logger.warning(f"[Proxy Config] 无效的 proxy_type: {plugin_config.proxy_type}")
+        return None
+
+    logger.success(f"[Proxy Config] 插件已配置代理: {proxy_url}")
+    return proxy_url
+
+

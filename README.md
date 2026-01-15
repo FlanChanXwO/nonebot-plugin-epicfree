@@ -106,13 +106,13 @@ EPIC__PROXY_PORT=7890
 
 **查询效果:**
 
-![img_3.png](https://github.com/FlanChanXwO/nonebot-plugin-epicfree/blob/main/assets/img_3.png)
+![img_3.png](https://raw.githubusercontent.com/FlanChanXwO/nonebot-plugin-epicfree/main/assets/img_3.png)
 
 **订阅与推送效果:**
  
-![img_1.png](https://github.com/FlanChanXwO/nonebot-plugin-epicfree/blob/main/assets/img_1.png)
+![img_1.png](https://raw.githubusercontent.com/FlanChanXwO/nonebot-plugin-epicfree/main/assets/img_1.png)
 
-![img_2.png](https://github.com/FlanChanXwO/nonebot-plugin-epicfree/blob/main/assets/img_2.png)
+![img_2.png](https://raw.githubusercontent.com/FlanChanXwO/nonebot-plugin-epicfree/main/assets/img_2.png)
 
 -----------------
 ## ️🙏 致谢

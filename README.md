@@ -7,7 +7,7 @@
 [![LICENSE](https://img.shields.io/github/license/FlanChanXwO/nonebot-plugin-epicfree.svg)](./LICENSE)
 [![pypi](https://img.shields.io/pypi/v/nonebot-plugin-epicfree.svg)](https://pypi.python.org/pypi/nonebot-plugin-epicfree)
 [![python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org)
-[![NoneBot](https://img.shields.io/badge/NoneBot-2.2.0+-green.svg)](https://github.com/nonebot/nonebot2)
+[![NoneBot](https://img.shields.io/badge/NoneBot-2.4.4+-green.svg)](https://github.com/nonebot/nonebot2)
 
 </div>
 

@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-epicfree"
-version = "0.2.8"
+version = "0.2.10"
 description = "EpicGameStore free games promotions plugin for NoneBot2"
 readme = "README.md"
 license = { text = "MIT" }
@@ -70,7 +70,6 @@ plugin_dirs = []
 builtin_plugins = []
 
 [tool.nonebot.plugins]
-nonebot_plugin_epicfree = ["nonebot_plugin_epicfree"]
 nonebot-plugin-localstore = ["nonebot_plugin_localstore"]
 
 [tool.nonebot.adapters]

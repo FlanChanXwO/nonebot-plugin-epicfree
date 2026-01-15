@@ -1,17 +1,17 @@
 from traceback import format_exc
-from typing import Union, Dict, Optional
+from typing import Union, Dict
 
 from nonebot import get_bot, get_driver, on_command, on_regex, require
 from nonebot.adapters import Bot, Event
-from nonebot.log import logger
-from nonebot.matcher import Matcher
-from nonebot.params import CommandArg, Depends
-from nonebot.plugin import PluginMetadata, get_plugin_config
 from nonebot.adapters.onebot.v11 import (
     GroupMessageEvent,
     PrivateMessageEvent,
     Message,
 )
+from nonebot.log import logger
+from nonebot.matcher import Matcher
+from nonebot.params import CommandArg, Depends
+from nonebot.plugin import PluginMetadata, get_plugin_config
 
 require("nonebot_plugin_localstore")
 require("nonebot_plugin_apscheduler")
@@ -24,7 +24,6 @@ from .data_source import (
     subscribe_helper,
 )
 from .config import Config
-from .proxy import get_proxy_url
 from .schedule import scheduler_manage
 
 # -------------------- 插件元数据 --------------------
@@ -44,7 +43,7 @@ __plugin_meta__ = PluginMetadata(
     supported_adapters={"~onebot.v11"},
     extra={
             "authors": ["FlanChanXwO", "monsterxcn", "studylessshape"],
-            "version": "0.2.8"
+            "version": "0.2.10"
           },
 )
 

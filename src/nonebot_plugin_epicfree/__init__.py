@@ -32,7 +32,7 @@ __plugin_meta__ = PluginMetadata(
     name="Epic喜加一",
     description="定时推送 Epic Game Store 每周免费游戏信息",
     usage="""
-    - `epic喜加一`: 手动获取本周免费游戏信息。
+    - `epic喜加一 / 喜加一`: 手动获取本周免费游戏信息。
     - `epic订阅 8:30`: 在每天的8:30为本群/私聊开启推送。
     - `epic取消订阅`: 关闭本群/私聊的推送。
     - `epic订阅状态`: 查看本群/私聊的订阅状态和推送时间。

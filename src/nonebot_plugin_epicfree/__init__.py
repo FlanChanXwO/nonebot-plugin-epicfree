@@ -1,6 +1,7 @@
 from traceback import format_exc
 from typing import Union, Dict
-
+import json
+import hashlib
 from nonebot import get_bot, get_driver, on_command, on_regex, require
 from nonebot.adapters import Bot, Event
 from nonebot.adapters.onebot.v11 import (
@@ -43,18 +44,44 @@ __plugin_meta__ = PluginMetadata(
     supported_adapters={"~onebot.v11"},
     extra={
             "authors": ["FlanChanXwO", "monsterxcn", "studylessshape"],
-            "version": "0.2.11"
+            "version": "0.2.12"
           },
 )
 
 # 配置
 plugin_config = get_plugin_config(Config).epic
 
-# -------------------- 指令定义 --------------------
-epic_matcher = on_regex(r"^(epic)?喜(加|\+|＋)(一|1)$", priority=10, block=True)
-sub_cmd = on_command("epic订阅", priority=10, block=True)
-unsub_cmd = on_command("epic取消订阅", aliases={"取消epic订阅"}, priority=10, block=True)
-status_cmd = on_command("epic订阅状态", aliases={"epic推送状态"}, priority=10, block=True)
+# -------------------- 机器人启动时加载任务 --------------------
+@get_driver().on_startup
+async def load_epic_jobs():
+    """启动时从文件中加载所有已保存的定时任务"""
+    logger.info("正在从文件加载 Epic 推送任务...")
+    sched_file = get_plugin_data_file("scheduler.json")
+    if not sched_file.exists():
+        logger.info("未找到 Epic 任务配置文件，跳过加载。")
+        return
+
+    import json
+    sched_data: Dict[str, str] = json.loads(sched_file.read_text(encoding="UTF-8"))
+    job_count = 0
+    for job_id, cron_time in sched_data.items():
+        try:
+            _, sub_type, subject_id = job_id.split("_", 2)
+            sub_type_cn = "群聊" if sub_type == "group" else "私聊"
+            sub_info = {"sub_type": sub_type_cn, "subject": subject_id}
+
+            minute, hour = cron_time.split()
+
+            scheduler.add_job(
+                push_epic_free, "cron", hour=hour, minute=minute, id=job_id, replace_existing=True,
+                kwargs={"job_id": job_id, "sub_info": sub_info}
+            )
+            job_count += 1
+        except Exception:
+            logger.error(f"加载 Epic 任务 {job_id} 失败，配置可能已损坏。\n{format_exc()}")
+
+    logger.info(f"成功加载 {job_count} 个 Epic 推送任务。")
+
 
 def get_job_id(event: Union[GroupMessageEvent, PrivateMessageEvent]) -> str:
     """根据事件类型生成唯一的 job_id"""
@@ -79,6 +106,49 @@ async def permission_check(matcher: Matcher, event: Event) -> None:
         if not is_superuser and event.sender.role not in ["admin", "owner"]:
             await matcher.finish("只有群管理员和主人才能操作订阅哦~")
 
+
+def get_message_fingerprint(msg_list) -> str:
+    """计算消息列表的指纹（Hash），用于判断内容是否变化"""
+    # 将消息对象转为字符串并计算 MD5，确保唯一性
+    content_str = str(msg_list)
+    return hashlib.md5(content_str.encode('utf-8')).hexdigest()
+
+
+def check_and_update_history(job_id: str, msg_list) -> bool:
+    """
+    检查该 job_id 是否已经推送过当前内容。
+    返回: True (需要推送，内容已更新), False (跳过，内容重复)
+    """
+    history_file = get_plugin_data_file("push_history.json")
+
+    # 1. 计算当前内容的指纹
+    current_fingerprint = get_message_fingerprint(msg_list)
+
+    # 2. 读取历史记录
+    history_data = {}
+    if history_file.exists():
+        try:
+            history_data = json.loads(history_file.read_text(encoding="UTF-8"))
+        except Exception:
+            logger.warning("历史记录文件损坏，将重置。")
+
+    # 3. 比对记录
+    last_fingerprint = history_data.get(job_id)
+
+    if last_fingerprint == current_fingerprint:
+        return False  # 指纹相同，说明是重复内容，不需要推送
+
+    # 4. 更新记录并保存
+    history_data[job_id] = current_fingerprint
+    history_file.write_text(json.dumps(history_data, ensure_ascii=False, indent=2), encoding="UTF-8")
+
+    return True  # 指纹不同，说明是新游戏，需要推送
+
+# -------------------- 指令定义 --------------------
+epic_matcher = on_regex(r"^(epic)?喜(加|\+|＋)(一|1)$", priority=10, block=True)
+sub_cmd = on_command("epic订阅", priority=10, block=True)
+unsub_cmd = on_command("epic取消订阅", aliases={"取消epic订阅"}, priority=10, block=True)
+status_cmd = on_command("epic订阅状态", aliases={"epic推送状态"}, priority=10, block=True)
 
 # -------------------- 指令处理 --------------------
 
@@ -157,8 +227,14 @@ async def handle_status(matcher: Matcher, event: Union[GroupMessageEvent, Privat
     # 获取定时任务配置
     sched_info = await scheduler_manage(job_id=job_id, action="get")
     if sched_info:
-        minute, hour = sched_info.split()
-        await matcher.finish(f"本{sub_info['sub_type']}已订阅 Epic 推送，每日推送时间为：{hour}:{minute}")
+        # -------- 修改开始 --------
+        minute_str, hour_str = sched_info.split()
+        # 将字符串转为整数，利用 :02d 补齐两位的零
+        minute = int(minute_str)
+        hour = int(hour_str)
+
+        await matcher.finish(f"本{sub_info['sub_type']}已订阅 Epic 推送，每日推送时间为：{hour:02d}:{minute:02d}")
+        # -------- 修改结束 --------
     else:
         # 数据不一致的兼容处理
         await matcher.finish(f"本{sub_info['sub_type']}已订阅，但未找到推送时间设置。请使用 `epic取消订阅` 后重新订阅。")
@@ -179,11 +255,14 @@ async def push_epic_free(job_id: str, sub_info: dict):
             scheduler.remove_job(job_id)
         return
 
-    # 获取游戏信息并检查是否需要推送
+    # 获取游戏信息
     msg_list = await get_epic_free()
-    if not check_push(msg_list):
-        logger.info("Epic 游戏信息未更新，无需推送。")
+
+    # 检查该群是否已经推送过这批游戏
+    if not check_and_update_history(job_id, msg_list):
+        logger.info(f"任务 {job_id}: 游戏内容未变，已跳过推送。")
         return
+    # -----------------------------------------------------------------------------
 
     try:
         if sub_info["sub_type"] == "群聊":
@@ -193,35 +272,3 @@ async def push_epic_free(job_id: str, sub_info: dict):
         logger.info(f"Epic 推送任务 {job_id} 执行成功。")
     except Exception as e:
         logger.error(f"Epic 推送任务 {job_id} 失败: {e.__class__.__name__}\n{format_exc()}")
-
-
-# -------------------- 机器人启动时加载任务 --------------------
-@get_driver().on_startup
-async def load_epic_jobs():
-    """启动时从文件中加载所有已保存的定时任务"""
-    logger.info("正在从文件加载 Epic 推送任务...")
-    sched_file = get_plugin_data_file("scheduler.json")
-    if not sched_file.exists():
-        logger.info("未找到 Epic 任务配置文件，跳过加载。")
-        return
-
-    import json
-    sched_data: Dict[str, str] = json.loads(sched_file.read_text(encoding="UTF-8"))
-    job_count = 0
-    for job_id, cron_time in sched_data.items():
-        try:
-            _, sub_type, subject_id = job_id.split("_", 2)
-            sub_type_cn = "群聊" if sub_type == "group" else "私聊"
-            sub_info = {"sub_type": sub_type_cn, "subject": subject_id}
-
-            minute, hour = cron_time.split()
-
-            scheduler.add_job(
-                push_epic_free, "cron", hour=hour, minute=minute, id=job_id, replace_existing=True,
-                kwargs={"job_id": job_id, "sub_info": sub_info}
-            )
-            job_count += 1
-        except Exception:
-            logger.error(f"加载 Epic 任务 {job_id} 失败，配置可能已损坏。\n{format_exc()}")
-
-    logger.info(f"成功加载 {job_count} 个 Epic 推送任务。")

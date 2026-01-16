@@ -9,7 +9,7 @@ from .config import Config
 require("nonebot_plugin_localstore")
 from nonebot_plugin_localstore import get_plugin_data_file, get_plugin_cache_file
 from pytz import timezone
-from nonebot.adapters.onebot.v11 import Message, MessageSegment  # type: ignore
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
 
 
 # 订阅状态配置文件

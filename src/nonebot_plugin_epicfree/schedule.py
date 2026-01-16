@@ -5,11 +5,6 @@ from nonebot import require
 require("nonebot_plugin_localstore")
 from nonebot_plugin_localstore import get_plugin_data_file
 
-try:
-    from nonebot.adapters.onebot.v11 import Message, MessageSegment  # type: ignore
-except ImportError:
-    from nonebot.adapters.cqhttp import Message, MessageSegment  # type: ignore
-
 # 任务调度配置文件
 scheduler_file = get_plugin_data_file("scheduler.json")
 

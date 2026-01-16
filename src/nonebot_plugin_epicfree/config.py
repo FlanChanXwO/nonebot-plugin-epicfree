@@ -7,7 +7,7 @@ class ScopedConfig(BaseModel):
     # "http": 使用 HTTP 代理
     # "socks5": 使用 SOCKS5 代理
     # None (或注释掉): 不使用代理
-    proxy_type: str | None = "http"  # 可选: "http", "socks5", None
+    proxy_type: str | None = None  # 可选: "http", "socks5", None
 
     # --- 代理地址和端口 ---
     proxy_host: str = "127.0.0.1"  # 代理服务器地址
